@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transformer</title>
+</head>
+<body>
+
+<form id="form">
+    <label for="text">Text:</label><br>
+    <input type="text" id="text" name="text" required><br><br>
+    <button type="button" id="generate" onclick="handleAction('generate')">Generate</button>
+    <button type="button" id="analyze" onclick="handleAction('analyze')">Analyze</button><br><br>
+</form>
+
+<textarea id="gen" style="width: 500px; height: 200px;"></textarea>
+
+<script>
+
+async function handleAction(action) {
+
+    const form = document.getElementById('form');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    data.action = action;
+
+    const outputElement = document.getElementById('gen');
+    let url, message;
+
+    switch(action) {
+        case 'generate':
+            message = "Generating text...";
+            url = 'http://127.0.0.1:8000/predict';
+            break;
+
+        case 'analyze':
+            message = "Analyzing text...";
+            url = 'http://127.0.0.1:8000/sentiment';
+            break;
+
+        default:
+            console.log('Unknown action');
+            return; // Exit if action is unknown
+    }
+
+    outputElement.value = message;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const result = await response.text();
+        outputElement.value = result;
+
+    } catch (error) {
+        console.error('Error:', error);
+        outputElement.value = 'An error occurred. Please try again.';
+    }
+}
+</script>
+
+</body>
+</html>
